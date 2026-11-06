@@ -1,0 +1,38 @@
+# Build output
+target/
+*.class
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+.classpath
+.project
+.settings/
+
+# macOS
+.DS_Store
+
+# Secrets and local config (never commit these)
+.env
+*.env
+application-local.yml
+application-local.properties
+
+# Raw datasets (never commit these)
+data/
+*.csv
+*.zip
+*.gz
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+
+# Test and load-test output
+k6-results/
