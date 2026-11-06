@@ -51,3 +51,11 @@ every component before claiming it.
 - Row counts independently cross-checked against the raw files (awk count for ECB, wc -l for Binance); they matched exactly.
 - Loads are idempotent: re-running skips files already recorded in `data_loads` (UNIQUE dataset + file_name).
 - Not yet measured: query latency, index effects, cache hit rate (M4 onward).
+
+## M4 measured baseline: naive N+1 endpoint (2026-11-06)
+- Endpoint: GET /api/v1/rates/latest-naive?provider=... (1 query for pairs + 1 query per pair). Table: 5,434,647 rows, NO secondary indexes, local Docker Postgres 16 on a MacBook Air (Apple Silicon).
+- BINANCE (20 pairs): 21 SQL statements per request (counted from Hibernate SQL log); 3 sequential curl requests took 2.68 s, 2.40 s, 2.41 s (later single request 2.65 s).
+- ECB (41 pairs): 42 SQL statements per request; 3 requests took 4.21 s, 4.18 s, 4.15 s (later single request 4.19 s).
+- Each per-pair query took about 100 ms (log timestamps), consistent with a full table scan of the unindexed table.
+- Caveats: single client, curl wall-clock time, no warm-up control, no load test yet. Proper p50/p95/p99 comes from k6 in M14.
+- Not yet fixed: this is the BEFORE number. M5 fixes N+1 (batched query) and indexing, measured separately.
