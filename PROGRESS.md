@@ -2,7 +2,7 @@
 
 | Milestone | Status | Date |
 |-----------|--------|------|
-| M0 Setup | In progress | 2026-11-06 |
+| M0 Setup | Done (AWS account and billing alarm deferred to M12) | 2026-11-06 |
 | M1 Skeleton | Not started | |
 | M2 Domain and provider client | Not started | |
 | M3 Data load | Not started | |
