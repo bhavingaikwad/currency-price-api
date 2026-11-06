@@ -4,7 +4,7 @@
 |-----------|--------|------|
 | M0 Setup | Done (AWS account and billing alarm deferred to M12) | 2026-11-06 |
 | M1 Skeleton | Done | 2026-11-06 |
-| M2 Domain and provider client | Not started | |
+| M2 Domain and provider client | Done | 2026-11-06 |
 | M3 Data load | Not started | |
 | M4 Naive endpoint (N+1) | Not started | |
 | M5 Fix N+1 and index | Not started | |
