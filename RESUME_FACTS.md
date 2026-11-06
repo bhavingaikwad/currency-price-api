@@ -42,3 +42,12 @@ every component before claiming it.
 
 ## What I did NOT build
 - No data loaded yet; no REST endpoints besides /health; no caching, auth, CI/CD or AWS yet.
+
+## M3 measured facts (2026-11-06)
+- Datasets loaded with Postgres COPY: ECB euro reference rate history (221,847 rows, 1999-01-04 to 2026-11-06) and Binance spot 1-minute klines (5,212,800 rows; 20 USDT pairs; 2026-01-01 to 2026-06-30 UTC; 120 monthly files, SHA-256 checksums verified). Total 5,434,647 rows in `rates`.
+- Binance load: 120 files in 31.0 s wall clock (about 168k rows/s, includes ANALYZE and per-file transactions).
+- `rates` table size: 554 MB total (heap + primary-key index only; no other indexes yet).
+- Data-quality checks (scripts/dq_checks.sql): 0 non-positive values, 0 duplicate (source,target,rate_time,provider) groups, 0 ECB weekend rows, 0 missing minutes in all 20 Binance series, data_loads totals equal actual row counts.
+- Row counts independently cross-checked against the raw files (awk count for ECB, wc -l for Binance); they matched exactly.
+- Loads are idempotent: re-running skips files already recorded in `data_loads` (UNIQUE dataset + file_name).
+- Not yet measured: query latency, index effects, cache hit rate (M4 onward).
