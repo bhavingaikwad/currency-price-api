@@ -17,8 +17,8 @@ every component before claiming it.
 - Terraform 1.17.1, k6 v2.3.0, AWS CLI 2.39.5 (AWS account not created yet, planned for M12)
 
 ## Datasets
-- ECB reference rates: TBD
-- Binance 1-minute candles: TBD
+- ECB reference rates: 221,847 rows, 1999-01-04 to 2026-11-06 (downloaded 2026-11-06)
+- Binance 1-minute candles: 5,212,800 rows, 20 USDT pairs, 2026-01-01 to 2026-06-30 UTC (downloaded 2026-11-06)
 
 ## What exists so far (verified)
 - Layered package layout: controller / service / repository / client / domain
