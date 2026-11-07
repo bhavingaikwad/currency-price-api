@@ -116,3 +116,14 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 - Unit tests (no Docker): cache logic with mocked Redis, query service, JWT issuing and validation, security property validation, error-handler paths, and Frankfurter provider error classification (4xx, 5xx, unreachable, unreadable body, empty body).
 - Build time: `./mvnw clean verify` including all Testcontainers tests took 24.4 s on a MacBook Air (single run, Docker images already pulled).
 - Caveats: line and branch coverage measure which code ran, not whether assertions are strong (no mutation testing was done). The 8 uncovered lines are the main() method, trivial accessors/constructors and health-endpoint boilerplate.
+
+## M10: containerization (all measured 2026-11-06)
+- Dockerfile: multi-stage (eclipse-temurin:21-jdk to build, eclipse-temurin:21-jre to run), Spring Boot layered jar, non-root user (uid 999), JVM flags MaxRAMPercentage=75 and ExitOnOutOfMemoryError. Tests are skipped in the image build (they run in CI in M11).
+- Image size as reported by `docker image ls`: 616 MB disk usage, 179 MB content size. Layers: dependencies 73.8 MB, application code 65.5 kB.
+- Build time: first build on this machine 33.2 s; rebuild with nothing changed 1.27 s (12 cached steps); rebuild after a one-line comment-only source change 4.65 s (10 cached steps). The change was a comment, so compiled classes were unchanged.
+- docker-compose stack: Postgres 16 (shm_size 256 MB), Redis 7, and the app. The app starts only after Postgres and Redis are healthy; its health check calls /actuator/health/readiness. The app container is limited to 512 MiB.
+- Startup time in the container: "Started CurrencyPriceApiApplication in 3.166 seconds" (MacBook Air, images already built).
+- Memory shortly after startup and one request (`docker stats`, includes page cache): app 381.7 MiB of its 512 MiB limit, Postgres 37.5 MiB, Redis 9.7 MiB. Note for M12: size the ECS task memory above 512 MiB.
+- Data persistence: after recreating the Postgres container, the named volume still held ECB 221,847 rows and BINANCE 5,212,800 rows, the same counts as the M3 load.
+- Verified in the running container: login returns a 191-character token, the cached endpoint returns HTTP 200, readiness is UP, and the process runs as uid 999.
+- Caveats: each timing is a single run; docker stats memory includes cache and is not a leak measurement.

@@ -12,7 +12,7 @@
 | M7 Race + unique upsert | Done (2026-11-06) | 392 rows for 50 rates before; exactly 50 after |
 | M8 Auth, rate limit, validation | Done (2026-11-06) | JWT + roles, Bucket4j limits, RFC 9457 errors, 15 integration tests |
 | M9 Testing | Done (2026-11-06) | 56 tests (1 live-API test skipped by design), JaCoCo 97.3% line / 87.5% branch, coverage gate enforced in the build |
-| M10 Containerize | Not started | |
+| M10 Containerize | Done (2026-11-06) | multi-stage non-root Dockerfile with layered jar, full compose stack (app + Postgres + Redis) with health checks |
 | M11 CI/CD | Not started | |
 | M12 AWS deploy | Not started | |
 | M13 Observability | Not started | |
@@ -21,8 +21,7 @@
 | M16 Final handoff | Not started | |
 
 ## Known issues / to do later
-- M10: add `shm_size: 256mb` to the postgres service in docker-compose.yml (default 64 MB /dev/shm made a parallel VACUUM fail).
 - Loaders should end with `VACUUM (ANALYZE, PARALLEL 0) rates` (sets the visibility map after a bulk load).
-- M10/M12: container and load-balancer health checks must use /actuator/health/readiness (db + app state), NOT /actuator/health, because overall health goes DOWN whenever Redis is down.
+- M12: load-balancer health checks (the M10 compose container check already uses /actuator/health/readiness) must use /actuator/health/readiness (db + app state), NOT /actuator/health, because overall health goes DOWN whenever Redis is down.
 - RateIngestService is not exposed through an endpoint yet (planned M8, behind JWT). When it is, it must also evict the Redis key latest:<provider> after a successful insert.
 - M12: rate-limit buckets are in-memory per instance (not shared across ECS tasks) and key on the remote IP; behind the load balancer set server.forward-headers-strategy=framework, and consider Redis-backed Bucket4j buckets if running more than one task.
