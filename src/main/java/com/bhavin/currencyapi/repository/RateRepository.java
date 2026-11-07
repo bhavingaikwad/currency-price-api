@@ -46,4 +46,18 @@ public interface RateRepository extends JpaRepository<Rate, Long> {
 
     @Query(value = "SELECT COALESCE(MAX(id), 0) FROM data_loads", nativeQuery = true)
     long dataLoadsWatermark();
+
+
+    // Idempotent insert (M7): the unique index decides; the loser gets 0 rows affected.
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = """
+            INSERT INTO rates (source, target, rate_time, value, provider)
+            VALUES (:source, :target, :rateTime, :value, :provider)
+            ON CONFLICT (provider, source, target, rate_time) DO NOTHING
+            """, nativeQuery = true)
+    int insertIfAbsent(@Param("source") String source,
+                       @Param("target") String target,
+                       @Param("rateTime") java.time.Instant rateTime,
+                       @Param("value") java.math.BigDecimal value,
+                       @Param("provider") String provider);
 }

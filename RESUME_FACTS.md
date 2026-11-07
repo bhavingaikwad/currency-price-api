@@ -85,3 +85,11 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 - Fix: readiness health group limited to readinessState + db. Verified with Redis stopped: /actuator/health = DOWN, /actuator/health/readiness = UP; both UP again after Redis restart.
 - Redis client timeouts set to 200 ms (read and connect). With Redis frozen (docker pause): HTTP 200 in 0.64 s, single sample. Likely one 200 ms wait on the cache read and one on the cache write, plus the DB query.
 - NOT measured: frozen-Redis latency with default client timeouts, so no before/after claim is made for the timeouts.
+
+## M7 measured results: duplicate-insert race (2026-11-06)
+- Reproduced the race with a Testcontainers (real Postgres 16) test: 50 distinct rates, each submitted by 8 threads at once (400 insert attempts), check-then-insert implementation, no unique constraint. Result: 392 rows stored (342 duplicates). The existence check blocked only 8 of 400 attempts. Single run.
+- Fix: unique index uq_rates_provider_pair_time (provider, source, target, rate_time) plus INSERT ... ON CONFLICT DO NOTHING (idempotent insert). Same test now requires exactly 50 rows and passes. A second test proves the database rejects a direct duplicate (DataIntegrityViolationException) even if application code skips the check.
+- The unique index replaced the non-unique lookup index: index sizes unchanged (rates_pkey 116 MB, unique index 256 MB). Built successfully on the existing 5,434,647 rows (0 duplicate groups).
+- Query plans after the change (dev database): per-pair latest = Index Scan Backward, 5 buffers, 0.051 ms (one cold sample). Whole batched latest-per-pair query = 0.611 ms with EXPLAIN ANALYZE (20 pairs, index-only scans, 0 heap fetches).
+- Chose DO NOTHING (first write wins) because exchange rates and closed candles are historical facts.
+- Not built: no HTTP endpoint for ingestion yet; cache eviction on ingest not wired yet.
