@@ -12,3 +12,9 @@ variable "image_tag" {
   type    = string
   default = "7414bc8"
 }
+
+variable "alert_email" {
+  description = "Email for alarm notifications. Leave null to skip the subscription."
+  type        = string
+  default     = null
+}

@@ -27,6 +27,7 @@ resource "aws_ecs_task_definition" "app" {
       { name = "POSTGRES_USER", value = "currency" },
       { name = "SPRING_DATA_REDIS_HOST", value = aws_elasticache_replication_group.main.primary_endpoint_address },
       { name = "SERVER_FORWARD_HEADERS_STRATEGY", value = "framework" },
+        { name = "SPRING_PROFILES_ACTIVE", value = "json" },
     ]
     secrets = [
       { name = "POSTGRES_PASSWORD", valueFrom = aws_ssm_parameter.db_password.arn },
