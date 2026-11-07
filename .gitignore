@@ -36,3 +36,11 @@ crash.log
 
 # Test and load-test output
 k6-results/
+
+# Terraform: state and variable files can contain secrets, never commit them
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
+infra/*.tfvars
+infra/*.tfplan
+infra/crash.log
