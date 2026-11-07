@@ -18,7 +18,7 @@ public interface RateRepository extends JpaRepository<Rate, Long> {
             String source, String target, String provider);
 
     // --- batched path (M5): ONE round trip ---
-    // The recursive CTE hops from pair to pair using idx_rates_provider_pair_time (a "loose index
+    // The recursive CTE hops from pair to pair using uq_rates_provider_pair_time (a "loose index
     // scan", because Postgres 16 has no skip scan), then LATERAL fetches the newest row per pair.
     @Query(value = """
             WITH RECURSIVE pairs AS (

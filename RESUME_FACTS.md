@@ -164,7 +164,7 @@ Known limitations (put these in the README): HTTP only, no TLS cert or domain; n
 
 ## M14 - Load test with k6 (measured, one local run)
 
-- Setup: k6 v2.3.0, 10 virtual users, 30 s per endpoint, provider BINANCE (5,212,800 rows; the table also holds 221,850 ECB rows). App in Docker (512 MB limit) on the same Apple Silicon laptop as k6; API rate limit raised for the test only; one unmeasured warm-up request first. 0% failed requests and 100% checks passed in all three runs.
+- Setup: k6 v2.3.0, 10 virtual users, 30 s per endpoint, provider BINANCE (5,212,800 rows; the table also holds 221,850 ECB rows: 221,847 from the dataset plus 3 from the live-ingest test). App in Docker (512 MB limit) on the same Apple Silicon laptop as k6; API rate limit raised for the test only; one unmeasured warm-up request first. 0% failed requests and 100% checks passed in all three runs.
 - latest-naive (one query per pair, N+1): 201 requests, 6.5 req/s, p50 1.27 s, p95 2.75 s, p99 3.1 s.
 - latest (single query + composite index): 118,370 requests, 3,945 req/s, p50 2.07 ms, p95 4.8 ms, p99 8.04 ms.
 - latest-cached (Redis cache-aside): 170,994 requests, 5,699 req/s, p50 1.4 ms, p95 3.87 ms, p99 5.9 ms.
