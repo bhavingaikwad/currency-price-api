@@ -1,0 +1,6 @@
+# Activated with SPRING_PROFILES_ACTIVE=json: one JSON object per log line,
+# which CloudWatch Logs Insights can filter and aggregate by field.
+logging:
+  structured:
+    format:
+      console: ecs

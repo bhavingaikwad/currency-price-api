@@ -48,6 +48,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       READER_PASSWORD: ${READER_PASSWORD}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SPRING_PROFILES_ACTIVE: json
     ports:
       - "8080:8080"
     healthcheck:
