@@ -161,3 +161,14 @@ Known limitations (put these in the README): HTTP only, no TLS cert or domain; n
 - CloudWatch dashboard (requests and 5xx, p50/p95/p99 latency, ECS CPU and memory, RDS CPU and connections) and two alarms (repeated 5xx; no healthy hosts) with an SNS topic, all defined in Terraform. `terraform plan` shows 49 resources (was 45).
 - NOT deployed: the dashboard and alarms have never run on AWS and no alarm has fired. Say "defined in Terraform", not "monitored in production".
 - Tests: 59 (1 skipped by design). Coverage 97.5% line / 88.7% branch, summed from the JaCoCo CSV; the build gate (95/85) passes.
+
+## M14 - Load test with k6 (measured, one local run)
+
+- Setup: k6 v2.3.0, 10 virtual users, 30 s per endpoint, provider BINANCE (5,212,800 rows; the table also holds 221,850 ECB rows). App in Docker (512 MB limit) on the same Apple Silicon laptop as k6; API rate limit raised for the test only; one unmeasured warm-up request first. 0% failed requests and 100% checks passed in all three runs.
+- latest-naive (one query per pair, N+1): 201 requests, 6.5 req/s, p50 1.27 s, p95 2.75 s, p99 3.1 s.
+- latest (single query + composite index): 118,370 requests, 3,945 req/s, p50 2.07 ms, p95 4.8 ms, p99 8.04 ms.
+- latest-cached (Redis cache-aside): 170,994 requests, 5,699 req/s, p50 1.4 ms, p95 3.87 ms, p99 5.9 ms.
+- Naive to single query + index: p95 about 570x lower (2.75 s to 4.8 ms), p50 about 610x lower, throughput about 608x higher.
+- Cache on top of that: p95 19% lower (4.8 to 3.87 ms), p50 32% lower, throughput 44% higher. The gain is small because the indexed query is already fast and every cache hit still reads the data_loads watermark from Postgres.
+- Caveats: one run per endpoint, laptop not production, k6 and the app share the machine. Use for comparing versions, not as capacity claims, and never present as AWS numbers.
+- Reproduce: docker compose -f docker-compose.yml -f docker-compose.loadtest.yml up -d, then ./scripts/loadtest.sh BINANCE 10 30s

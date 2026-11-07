@@ -1,0 +1,5 @@
+# Load-test only: raises the API rate limit so k6 measures the app, not the limiter.
+services:
+  app:
+    environment:
+      APP_RATELIMIT_APIPERMINUTE: "1000000"
