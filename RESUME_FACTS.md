@@ -78,3 +78,10 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 - Latency, BINANCE, 100 sequential curl requests, single client: /latest (DB, batched) p50 4.8 ms, p95 5.3 ms, max 6.3 ms; /latest-cached p50 4.3 ms, p95 6.5 ms, max 45 ms. Conclusion: at single-client level the cache gives no meaningful latency win, because the batched indexed query is already fast. Behaviour under concurrent load is measured in M14.
 - Counters in that test: 101 hits, 2 misses (98.1%), an artifact of repeating one request, NOT a production hit rate.
 - Not yet verified: behaviour when Redis is down; cache benefit under concurrency.
+
+## M6 resilience results: Redis failure modes (2026-11-06)
+- Redis container stopped: /latest-cached still returned HTTP 200 in about 16 ms via the DB fallback (cache errors counted and logged).
+- Finding: overall /actuator/health went DOWN while Redis was down (Redis health indicator), which would let a load balancer kill healthy app containers over a cache outage.
+- Fix: readiness health group limited to readinessState + db. Verified with Redis stopped: /actuator/health = DOWN, /actuator/health/readiness = UP; both UP again after Redis restart.
+- Redis client timeouts set to 200 ms (read and connect). With Redis frozen (docker pause): HTTP 200 in 0.64 s, single sample. Likely one 200 ms wait on the cache read and one on the cache write, plus the DB query.
+- NOT measured: frozen-Redis latency with default client timeouts, so no before/after claim is made for the timeouts.

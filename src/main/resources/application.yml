@@ -1,4 +1,8 @@
 spring:
+  data:
+    redis:
+      timeout: 200ms
+      connect-timeout: 200ms
   application:
     name: currency-price-api
   datasource:
@@ -17,6 +21,11 @@ management:
     web:
       exposure:
         include: health,info,metrics
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: readinessState,db
 
 rates:
   frankfurter:
