@@ -172,3 +172,23 @@ Known limitations (put these in the README): HTTP only, no TLS cert or domain; n
 - Cache on top of that: p95 19% lower (4.8 to 3.87 ms), p50 32% lower, throughput 44% higher. The gain is small because the indexed query is already fast and every cache hit still reads the data_loads watermark from Postgres.
 - Caveats: one run per endpoint, laptop not production, k6 and the app share the machine. Use for comparing versions, not as capacity claims, and never present as AWS numbers.
 - Reproduce: docker compose -f docker-compose.yml -f docker-compose.loadtest.yml up -d, then ./scripts/loadtest.sh BINANCE 10 30s
+
+## M16 - Final resume bullets (only numbers measured above)
+
+Tools line: Java 21, Spring Boot 4, PostgreSQL 16, Redis, Docker, Terraform, AWS (ECS Fargate, RDS, ElastiCache, ALB), GitHub Actions, k6, JUnit, Testcontainers.
+
+1. Cut p95 latency of a latest-rates endpoint from 2.75 s to 4.8 ms (about 570x) and raised throughput from 6.5 to 3,945 requests/s on 5.2M rows by replacing an N+1 query pattern with one recursive-CTE query over a composite unique index (measured with k6).
+2. Lowered p95 a further 19% (4.8 ms to 3.87 ms) and raised throughput 44% to 5,699 requests/s with a Redis cache-aside layer that checks a data-load watermark, so bulk loads show up immediately and a Redis outage falls back to PostgreSQL.
+3. Deployed the service to AWS (ECS Fargate behind a load balancer, RDS PostgreSQL, ElastiCache, SSM secrets) from 45 Terraform-managed resources, verified login, admin ingest and cached reads through the load balancer, then destroyed the stack with one command to avoid ongoing cost.
+4. Reached 97.5% line / 88.7% branch coverage across 59 tests (Testcontainers on real PostgreSQL and Redis), enforced as a 95/85 build gate in GitHub Actions CI that also publishes the Docker image to GHCR.
+5. Secured the API with stateless JWT auth and reader/admin roles, per-user rate limiting (429 with Retry-After) and idempotent, race-tested writes (unique index plus ON CONFLICT DO NOTHING); added JSON logs, custom metrics and a CloudWatch dashboard with alarms defined in Terraform.
+
+Rules: say "deployed to AWS", never "live". Do not call the cloud monitoring "in production": the dashboard and alarms were defined, not deployed. Load-test numbers are from one local run. Do not state the AWS cost until the billing page shows it.
+
+## 5-line interview walkthrough
+
+1. It is a Spring Boot API that returns the latest exchange rate per currency pair from about 5.2 million real Binance rows plus ECB history.
+2. The first version ran one query per pair and had a p95 of 2.75 s under load; one query that hops along a composite unique index brought it to 4.8 ms.
+3. A Redis cache checks a load watermark so it never serves stale data after a bulk load; it added only about 19% because the indexed query was already fast, and I can explain why.
+4. Writes are idempotent and race-tested, auth is JWT with roles plus rate limiting, and CI fails the build under 95/85 coverage (97.5/88.7 measured).
+5. I defined the AWS stack in Terraform, deployed and verified it, then destroyed it; I know its limits: HTTP only, single AZ, local Terraform state.
