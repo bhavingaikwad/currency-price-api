@@ -14,7 +14,7 @@
 | M9 Testing | Done (2026-11-06) | 56 tests (1 live-API test skipped by design), JaCoCo 97.3% line / 87.5% branch, coverage gate enforced in the build |
 | M10 Containerize | Done (2026-11-06) | multi-stage non-root Dockerfile with layered jar, full compose stack (app + Postgres + Redis) with health checks |
 | M11 CI/CD | Done (2026-11-06) | GitHub Actions: tests + coverage gate on every push/PR, image published to GHCR from main |
-| M12 AWS deploy | Not started | |
+| M12 AWS deploy | Done, torn down (2026-11-07) | Terraform: 45 resources on AWS (VPC, RDS, ElastiCache, ECR, ECS Fargate, ALB, SSM), deployed and verified through the load balancer, then destroyed; real cost check pending |
 | M13 Observability | Not started | |
 | M14 Load test | Not started | |
 | M15 Docs | Not started | |
@@ -22,6 +22,6 @@
 
 ## Known issues / to do later
 - Loaders should end with `VACUUM (ANALYZE, PARALLEL 0) rates` (sets the visibility map after a bulk load).
-- M12: load-balancer health checks (the M10 compose container check already uses /actuator/health/readiness) must use /actuator/health/readiness (db + app state), NOT /actuator/health, because overall health goes DOWN whenever Redis is down.
-- RateIngestService is not exposed through an endpoint yet (planned M8, behind JWT). When it is, it must also evict the Redis key latest:<provider> after a successful insert.
-- M12: rate-limit buckets are in-memory per instance (not shared across ECS tasks) and key on the remote IP; behind the load balancer set server.forward-headers-strategy=framework, and consider Redis-backed Bucket4j buckets if running more than one task.
+- Done in M12: the load balancer health check uses /actuator/health/readiness, not /actuator/health.
+- Done in M12: POST /api/v1/admin/ingest exists (ADMIN role only). No cache eviction needed: the latest-rates cache uses a data_loads watermark plus a 30 s TTL.
+- Rate-limit buckets are in-memory per instance and key on the remote IP (forwarded headers are enabled). Fine for one task; use Redis-backed Bucket4j buckets before running more than one.
