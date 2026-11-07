@@ -1,5 +1,6 @@
 package com.bhavin.currencyapi.controller;
 
+import com.bhavin.currencyapi.domain.ProviderName;
 import com.bhavin.currencyapi.domain.RateView;
 import com.bhavin.currencyapi.service.LatestRatesCache;
 import com.bhavin.currencyapi.service.RateQueryService;
@@ -22,17 +23,17 @@ public class RateController {
     }
 
     @GetMapping("/latest-naive")
-    public List<RateView> latestNaive(@RequestParam String provider) {
-        return rateQueryService.latestPerPairNaive(provider);
+    public List<RateView> latestNaive(@RequestParam ProviderName provider) {
+        return rateQueryService.latestPerPairNaive(provider.name());
     }
 
     @GetMapping("/latest")
-    public List<RateView> latest(@RequestParam String provider) {
-        return rateQueryService.latestPerPair(provider);
+    public List<RateView> latest(@RequestParam ProviderName provider) {
+        return rateQueryService.latestPerPair(provider.name());
     }
 
     @GetMapping("/latest-cached")
-    public List<RateView> latestCached(@RequestParam String provider) {
-        return latestRatesCache.latest(provider);
+    public List<RateView> latestCached(@RequestParam ProviderName provider) {
+        return latestRatesCache.latest(provider.name());
     }
 }

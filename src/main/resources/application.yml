@@ -32,3 +32,10 @@ rates:
     base-url: https://api.frankfurter.dev
     connect-timeout: 2s
     read-timeout: 5s
+
+app:
+  security:
+    jwt-secret: ${JWT_SECRET}
+    reader-password: ${READER_PASSWORD}
+    admin-password: ${ADMIN_PASSWORD}
+    token-ttl: 30m

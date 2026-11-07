@@ -93,3 +93,10 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 - Query plans after the change (dev database): per-pair latest = Index Scan Backward, 5 buffers, 0.051 ms (one cold sample). Whole batched latest-per-pair query = 0.611 ms with EXPLAIN ANALYZE (20 pairs, index-only scans, 0 heap fetches).
 - Chose DO NOTHING (first write wins) because exchange rates and closed candles are historical facts.
 - Not built: no HTTP endpoint for ingestion yet; cache eviction on ingest not wired yet.
+
+## M8b: JWT authentication (2026-11-06)
+- POST /api/v1/auth/token exchanges a username and password for an HS256 JWT (30 minute TTL, role claim). All /api/v1/rates reads require a Bearer token with role USER; /actuator details require ADMIN; /actuator/health and the token endpoint are open.
+- Passwords are BCrypt-hashed; unknown users cost the same BCrypt time as wrong passwords. JWT secret must be at least 32 bytes or the app refuses to start; secrets come from environment variables (.env is gitignored).
+- 401 and 403 use the same RFC 9457 Problem Details format as all other errors.
+- 11 integration tests against a real Postgres (Testcontainers) cover: no token 401, garbage token 401, wrong password 401, unknown user 401, blank username 400, reader happy path and validation errors, open health endpoint, reader 403 vs admin 200 on /actuator/metrics. Also checked on the running app with curl: 401 / 200 / 403 / 200 as expected, token length 191.
+- NOT built: user database or identity provider (two in-memory demo users), refresh tokens, token revocation (tokens are valid until expiry), role-protected write endpoint (ingestion still not exposed over HTTP).
