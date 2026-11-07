@@ -10,7 +10,7 @@
 | M5 Batched query + index | Done (2026-11-06) | 21 queries -> 1; BINANCE 2.4 s -> ~7 ms, ECB 4.2 s -> ~5 ms |
 | M6 Redis cache-aside | Done (2026-11-06) | fresh + resilient; no single-client latency win (p50 4.3 vs 4.8 ms) |
 | M7 Race + unique upsert | Done (2026-11-06) | 392 rows for 50 rates before; exactly 50 after |
-| M8 Auth, rate limit, validation | In progress | 8a + 8b done (JWT); 8c rate limiting next |
+| M8 Auth, rate limit, validation | Done (2026-11-06) | JWT + roles, Bucket4j limits, RFC 9457 errors, 15 integration tests |
 | M9 Testing | Not started | |
 | M10 Containerize | Not started | |
 | M11 CI/CD | Not started | |
@@ -25,3 +25,4 @@
 - Loaders should end with `VACUUM (ANALYZE, PARALLEL 0) rates` (sets the visibility map after a bulk load).
 - M10/M12: container and load-balancer health checks must use /actuator/health/readiness (db + app state), NOT /actuator/health, because overall health goes DOWN whenever Redis is down.
 - RateIngestService is not exposed through an endpoint yet (planned M8, behind JWT). When it is, it must also evict the Redis key latest:<provider> after a successful insert.
+- M12: rate-limit buckets are in-memory per instance (not shared across ECS tasks) and key on the remote IP; behind the load balancer set server.forward-headers-strategy=framework, and consider Redis-backed Bucket4j buckets if running more than one task.

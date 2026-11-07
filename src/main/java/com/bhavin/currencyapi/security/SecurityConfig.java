@@ -20,11 +20,12 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableConfigurationProperties(AppSecurityProperties.class)
+@EnableConfigurationProperties({AppSecurityProperties.class, RateLimitProperties.class})
 public class SecurityConfig {
 
     private static SecretKeySpec signingKey(AppSecurityProperties props) {
@@ -55,7 +56,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, ProblemSecurityHandlers problems) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, ProblemSecurityHandlers problems,
+                                            RateLimitProperties rateLimits) throws Exception {
         JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
         authorities.setAuthoritiesClaimName("roles");
         authorities.setAuthorityPrefix("ROLE_");
@@ -77,7 +79,8 @@ public class SecurityConfig {
                         .accessDeniedHandler(problems))
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint(problems)
-                        .accessDeniedHandler(problems));
+                        .accessDeniedHandler(problems))
+                .addFilterAfter(new RateLimitFilter(rateLimits), BearerTokenAuthenticationFilter.class);
         return http.build();
     }
 }

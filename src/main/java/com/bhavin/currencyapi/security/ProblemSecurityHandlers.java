@@ -32,7 +32,7 @@ public class ProblemSecurityHandlers implements AuthenticationEntryPoint, Access
                 "You do not have permission to perform this action.");
     }
 
-    private static void write(HttpServletRequest request, HttpServletResponse response, HttpStatus status,
+    public static void write(HttpServletRequest request, HttpServletResponse response, HttpStatus status,
                               String title, String detail) throws IOException {
         String body = "{\"type\":\"about:blank\",\"title\":\"" + escape(title) + "\",\"status\":" + status.value()
                 + ",\"detail\":\"" + escape(detail) + "\",\"instance\":\"" + escape(request.getRequestURI())

@@ -100,3 +100,10 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 - 401 and 403 use the same RFC 9457 Problem Details format as all other errors.
 - 11 integration tests against a real Postgres (Testcontainers) cover: no token 401, garbage token 401, wrong password 401, unknown user 401, blank username 400, reader happy path and validation errors, open health endpoint, reader 403 vs admin 200 on /actuator/metrics. Also checked on the running app with curl: 401 / 200 / 403 / 200 as expected, token length 191.
 - NOT built: user database or identity provider (two in-memory demo users), refresh tokens, token revocation (tokens are valid until expiry), role-protected write endpoint (ingestion still not exposed over HTTP).
+
+## M8c: rate limiting (2026-11-06)
+- Bucket4j 8.22.0 token-bucket filter, in-memory, buckets held in a size-bounded (10,000) Caffeine cache that expires idle entries after 10 minutes. Limits: login 5 per minute per IP (brute-force protection), other endpoints 60 per minute per authenticated user (per IP when unauthenticated), health checks exempt. Over the limit: HTTP 429 in the Problem Details format with a Retry-After header; allowed responses carry X-RateLimit-Remaining.
+- 4 integration tests (real Postgres via Testcontainers, limits lowered by property): per-user limit with 429 body and headers, independent buckets per user, login limit per IP, health never limited.
+- Checked on the running app: login attempts 1 to 5 returned 401, attempts 6 and 7 returned 429 with Retry-After 12 seconds (5 per minute refills one token every 12 seconds).
+- Test suite after M8: 23 tests run, 1 skipped (opt-in live provider test), all passing.
+- Limitations: buckets are per instance (not shared between multiple tasks); the client IP is the direct remote address, so behind a load balancer forwarded headers must be configured; not load-tested yet.
