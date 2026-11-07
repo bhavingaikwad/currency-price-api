@@ -152,3 +152,12 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 Wording rules: say "deployed to AWS", never "live". Do not quote latency numbers from this deployment (single observations only; real numbers come from the k6 load test in M14).
 
 Known limitations (put these in the README): HTTP only, no TLS cert or domain; no TLS to the cache; single-AZ database with backups off; cloud demo had ECB latest-snapshot data only, not Binance history.
+
+## M13 - Observability (measured)
+
+- Structured JSON logs using Spring Boot's built-in ECS format, switched on by the `json` profile (set in compose and in the ECS task). Verified locally: every log line is one JSON object.
+- Custom Micrometer metrics: rates.cache{result=hit|miss|stale|error} and rates.ingest{result=stored|duplicate}. Verified locally: first ingest stored 3, repeat ingest counted 3 duplicates, counter total 6.
+- Rejected requests (429) are visible through the built-in http.server.requests metric; no separate counter.
+- CloudWatch dashboard (requests and 5xx, p50/p95/p99 latency, ECS CPU and memory, RDS CPU and connections) and two alarms (repeated 5xx; no healthy hosts) with an SNS topic, all defined in Terraform. `terraform plan` shows 49 resources (was 45).
+- NOT deployed: the dashboard and alarms have never run on AWS and no alarm has fired. Say "defined in Terraform", not "monitored in production".
+- Tests: 59 (1 skipped by design). Coverage 97.5% line / 88.7% branch, summed from the JaCoCo CSV; the build gate (95/85) passes.
