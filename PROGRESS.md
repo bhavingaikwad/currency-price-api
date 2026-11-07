@@ -17,7 +17,7 @@
 | M12 AWS deploy | Done, torn down (2026-11-07) | Terraform: 45 resources on AWS (VPC, RDS, ElastiCache, ECR, ECS Fargate, ALB, SSM), deployed and verified through the load balancer, then destroyed; real cost check pending |
 | M13 Observability | Done locally (2026-11-07) | JSON log profile, rates.ingest and rates.cache metrics, CloudWatch dashboard + 2 alarms defined in Terraform (planned, not deployed); 59 tests, 97.5% line / 88.7% branch |
 | M14 Load test | Done (2026-11-07) | k6, 10 users for 30 s on BINANCE (5.2M rows): naive p95 2.75 s, single-query + index p95 4.8 ms, cached p95 3.87 ms (one local run) |
-| M15 Docs | Not started | |
+| M15 Docs | Done (2026-11-07) | README with results table and AWS diagram, 3 decision records, runbook, OpenAPI spec |
 | M16 Final handoff | Not started | |
 
 ## Known issues / to do later
