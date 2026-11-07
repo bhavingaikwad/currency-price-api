@@ -70,3 +70,11 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 - End to end, BINANCE 2.41 s -> 0.0066 s (about 360x), ECB 4.15 s -> 0.0050 s (about 830x); 21 and 42 queries -> 1.
 - Batched and naive endpoints return identical data for BINANCE (20 rows) and ECB (41 rows); unknown provider returns [].
 - Caveats: curl wall-clock, single client, no concurrency; p50/p95/p99 under load come from k6 in M14. Run 1 after a restart is slower (JVM and cache warm-up).
+
+## M6 measured results: Redis cache-aside (2026-11-06)
+- Cache-aside on /api/v1/rates/latest-cached: Redis 7, 30 s TTL, plus a freshness check (data_loads watermark compared on every hit). Hit/miss/stale/error counters exposed through Micrometer.
+- Correctness: DB, cache-miss and cache-hit responses are byte-identical (SHA check).
+- Freshness check: after inserting a data_loads row, the next request counted 1 stale lookup, refreshed from the DB, and returned HTTP 200.
+- Latency, BINANCE, 100 sequential curl requests, single client: /latest (DB, batched) p50 4.8 ms, p95 5.3 ms, max 6.3 ms; /latest-cached p50 4.3 ms, p95 6.5 ms, max 45 ms. Conclusion: at single-client level the cache gives no meaningful latency win, because the batched indexed query is already fast. Behaviour under concurrent load is measured in M14.
+- Counters in that test: 101 hits, 2 misses (98.1%), an artifact of repeating one request, NOT a production hit rate.
+- Not yet verified: behaviour when Redis is down; cache benefit under concurrency.

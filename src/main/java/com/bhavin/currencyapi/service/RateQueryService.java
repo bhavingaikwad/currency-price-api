@@ -1,6 +1,6 @@
 package com.bhavin.currencyapi.service;
 
-import com.bhavin.currencyapi.domain.Rate;
+import com.bhavin.currencyapi.domain.RateView;
 import com.bhavin.currencyapi.repository.PairKey;
 import com.bhavin.currencyapi.repository.RateRepository;
 import java.util.ArrayList;
@@ -17,26 +17,26 @@ public class RateQueryService {
         this.rateRepository = rateRepository;
     }
 
-    /**
-     * NAIVE on purpose (M4): 1 query for the pairs + 1 query PER pair = N+1 round trips.
-     * Replaced by a batched query in M5; kept so we can compare before and after.
-     */
     @Transactional(readOnly = true)
-    public List<Rate> latestPerPairNaive(String provider) {
+    public List<RateView> latestPerPairNaive(String provider) {
         List<PairKey> pairs = rateRepository.findDistinctPairs(provider);
-        List<Rate> result = new ArrayList<>();
+        List<RateView> result = new ArrayList<>();
         for (PairKey pair : pairs) {
             rateRepository
-                    .findFirstBySourceAndTargetAndProviderOrderByRateTimeDesc(
-                            pair.source(), pair.target(), provider)
+                    .findFirstBySourceAndTargetAndProviderOrderByRateTimeDesc(pair.source(), pair.target(), provider)
+                    .map(RateView::from)
                     .ifPresent(result::add);
         }
         return result;
     }
 
-    /** Batched (M5): a single SQL statement, served by idx_rates_provider_pair_time. */
     @Transactional(readOnly = true)
-    public List<Rate> latestPerPair(String provider) {
-        return rateRepository.findLatestPerPair(provider);
+    public List<RateView> latestPerPair(String provider) {
+        return rateRepository.findLatestPerPair(provider).stream().map(RateView::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public long currentWatermark() {
+        return rateRepository.dataLoadsWatermark();
     }
 }

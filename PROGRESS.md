@@ -8,7 +8,7 @@
 | M3 Data load | Done (2026-11-06) | 5.43M real rows loaded, DQ checks pass |
 | M4 Naive N+1 endpoint | Done (2026-11-06) | 21 queries / ~2.4 s (BINANCE), 42 queries / ~4.2 s (ECB) per request |
 | M5 Batched query + index | Done (2026-11-06) | 21 queries -> 1; BINANCE 2.4 s -> ~7 ms, ECB 4.2 s -> ~5 ms |
-| M6 Caching | Not started | |
+| M6 Redis cache-aside | In progress | works and is fresh; Redis-down behaviour next |
 | M7 Concurrency | Not started | |
 | M8 Security | Not started | |
 | M9 Testing | Not started | |

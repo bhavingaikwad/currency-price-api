@@ -43,4 +43,7 @@ public interface RateRepository extends JpaRepository<Rate, Long> {
             ORDER BY r.source, r.target
             """, nativeQuery = true)
     List<Rate> findLatestPerPair(@Param("provider") String provider);
+
+    @Query(value = "SELECT COALESCE(MAX(id), 0) FROM data_loads", nativeQuery = true)
+    long dataLoadsWatermark();
 }
