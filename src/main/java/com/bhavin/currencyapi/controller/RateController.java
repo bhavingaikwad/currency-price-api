@@ -22,4 +22,10 @@ public class RateController {
     public List<RateDto> latestNaive(@RequestParam String provider) {
         return rateQueryService.latestPerPairNaive(provider).stream().map(RateDto::from).toList();
     }
+
+    /** Batched version (M5). */
+    @GetMapping("/latest")
+    public List<RateDto> latest(@RequestParam String provider) {
+        return rateQueryService.latestPerPair(provider).stream().map(RateDto::from).toList();
+    }
 }

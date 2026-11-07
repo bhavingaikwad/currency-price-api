@@ -7,7 +7,7 @@
 | M2 Domain and provider client | Done | 2026-11-06 |
 | M3 Data load | Done (2026-11-06) | 5.43M real rows loaded, DQ checks pass |
 | M4 Naive N+1 endpoint | Done (2026-11-06) | 21 queries / ~2.4 s (BINANCE), 42 queries / ~4.2 s (ECB) per request |
-| M5 Fix N+1 and index | Not started | |
+| M5 Batched query + index | Done (2026-11-06) | 21 queries -> 1; BINANCE 2.4 s -> ~7 ms, ECB 4.2 s -> ~5 ms |
 | M6 Caching | Not started | |
 | M7 Concurrency | Not started | |
 | M8 Security | Not started | |
@@ -19,3 +19,7 @@
 | M14 Load test | Not started | |
 | M15 Docs | Not started | |
 | M16 Final handoff | Not started | |
+
+## Known issues / to do later
+- M10: add `shm_size: 256mb` to the postgres service in docker-compose.yml (default 64 MB /dev/shm made a parallel VACUUM fail).
+- Loaders should end with `VACUUM (ANALYZE, PARALLEL 0) rates` (sets the visibility map after a bulk load).

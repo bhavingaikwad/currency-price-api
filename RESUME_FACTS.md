@@ -59,3 +59,14 @@ every component before claiming it.
 - Each per-pair query took about 100 ms (log timestamps), consistent with a full table scan of the unindexed table.
 - Caveats: single client, curl wall-clock time, no warm-up control, no load test yet. Proper p50/p95/p99 comes from k6 in M14.
 - Not yet fixed: this is the BEFORE number. M5 fixes N+1 (batched query) and indexing, measured separately.
+
+## M5 measured results: index + batched query (2026-11-06)
+Same machine, same 5,434,647-row table, single client with curl, 3 requests per case (steady-state = 3rd request).
+- Index added: idx_rates_provider_pair_time ON rates (provider, source, target, rate_time DESC). Size 256 MB (primary key 116 MB). Write/storage cost accepted.
+- Per-pair "latest" query plan (EXPLAIN ANALYZE, BUFFERS): BEFORE Parallel Seq Scan over 5.4M rows, 56,128 buffers (about 440 MB), 108 ms warm (249 ms cold). AFTER Index Scan, 5 buffers, 0.023 ms.
+- Distinct-pairs query: Parallel Seq Scan before (292 ms) and after (328 ms). The index does not help because ~96% of the table is BINANCE. Postgres 16 has no skip scan.
+- Fix 1 (index only, N+1 still present): BINANCE 2.41 s -> 0.24 s (21 queries); ECB 4.15 s -> 0.037 s (42 queries).
+- Fix 2 (one batched query: recursive CTE "loose index scan" + LATERAL, via /api/v1/rates/latest): 1 SQL statement per request. BINANCE steady-state 0.0066 s; ECB 0.0050 s.
+- End to end, BINANCE 2.41 s -> 0.0066 s (about 360x), ECB 4.15 s -> 0.0050 s (about 830x); 21 and 42 queries -> 1.
+- Batched and naive endpoints return identical data for BINANCE (20 rows) and ECB (41 rows); unknown provider returns [].
+- Caveats: curl wall-clock, single client, no concurrency; p50/p95/p99 under load come from k6 in M14. Run 1 after a restart is slower (JVM and cache warm-up).

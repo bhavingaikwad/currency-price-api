@@ -33,4 +33,10 @@ public class RateQueryService {
         }
         return result;
     }
+
+    /** Batched (M5): a single SQL statement, served by idx_rates_provider_pair_time. */
+    @Transactional(readOnly = true)
+    public List<Rate> latestPerPair(String provider) {
+        return rateRepository.findLatestPerPair(provider);
+    }
 }
