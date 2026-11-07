@@ -44,3 +44,7 @@ infra/*.tfstate.*
 infra/*.tfvars
 infra/*.tfplan
 infra/crash.log
+
+# editor state
+.metals/
+.vscode/
