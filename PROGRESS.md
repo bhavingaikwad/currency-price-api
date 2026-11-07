@@ -11,7 +11,7 @@
 | M6 Redis cache-aside | Done (2026-11-06) | fresh + resilient; no single-client latency win (p50 4.3 vs 4.8 ms) |
 | M7 Race + unique upsert | Done (2026-11-06) | 392 rows for 50 rates before; exactly 50 after |
 | M8 Auth, rate limit, validation | Done (2026-11-06) | JWT + roles, Bucket4j limits, RFC 9457 errors, 15 integration tests |
-| M9 Testing | Not started | |
+| M9 Testing | Done (2026-11-06) | 56 tests (1 live-API test skipped by design), JaCoCo 97.3% line / 87.5% branch, coverage gate enforced in the build |
 | M10 Containerize | Not started | |
 | M11 CI/CD | Not started | |
 | M12 AWS deploy | Not started | |

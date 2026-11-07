@@ -107,3 +107,12 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 - Checked on the running app: login attempts 1 to 5 returned 401, attempts 6 and 7 returned 429 with Retry-After 12 seconds (5 per minute refills one token every 12 seconds).
 - Test suite after M8: 23 tests run, 1 skipped (opt-in live provider test), all passing.
 - Limitations: buckets are per instance (not shared between multiple tasks); the client IP is the direct remote address, so behind a load balancer forwarded headers must be configured; not load-tested yet.
+
+## M9: testing and coverage (all measured 2026-11-06)
+- Test suite: 56 tests, 0 failures, 0 errors, 1 skipped. The skipped test is FrankfurterLiveTest, which calls the real Frankfurter API and only runs when RUN_LIVE_TESTS is set.
+- JaCoCo 0.8.16 coverage: 76.6% line (229/299) and 55.4% branch (31/56) before the M9 tests; 97.3% line (291/299) and 87.5% branch (49/56) after.
+- Coverage gate: the build fails below 95% line or 85% branch coverage. I verified the gate can fail by raising the line floor to 99% (build exit 1), then restoring it (exit 0).
+- Integration tests run against real Postgres 16 and Redis 7 containers (Testcontainers): cache miss then hit with TTL <= 30 s, stale-watermark replacement, and a paused Redis container still returning HTTP 200 from the database.
+- Unit tests (no Docker): cache logic with mocked Redis, query service, JWT issuing and validation, security property validation, error-handler paths, and Frankfurter provider error classification (4xx, 5xx, unreachable, unreadable body, empty body).
+- Build time: `./mvnw clean verify` including all Testcontainers tests took 24.4 s on a MacBook Air (single run, Docker images already pulled).
+- Caveats: line and branch coverage measure which code ran, not whether assertions are strong (no mutation testing was done). The 8 uncovered lines are the main() method, trivial accessors/constructors and health-endpoint boilerplate.
