@@ -127,3 +127,11 @@ Same machine, same 5,434,647-row table, single client with curl, 3 requests per 
 - Data persistence: after recreating the Postgres container, the named volume still held ECB 221,847 rows and BINANCE 5,212,800 rows, the same counts as the M3 load.
 - Verified in the running container: login returns a 191-character token, the cached endpoint returns HTTP 200, readiness is UP, and the process runs as uid 999.
 - Caveats: each timing is a single run; docker stats memory includes cache and is not a leak measurement.
+
+## M11: CI/CD (all measured 2026-11-06)
+- GitHub Actions workflow runs on every pull request and on pushes to main. Job `test` runs `./mvnw -B verify` (all 56 tests with Testcontainers plus the JaCoCo gate of 95% line / 85% branch) and uploads the coverage report. Job `image` runs only if `test` passes, builds the Docker image, and publishes it to ghcr.io/bhavingaikwad/currency-price-api (tags: commit SHA and latest) only on pushes to main.
+- Run 1 (42339408667): test job 1m7s, image job 1m34s. Run 2 (42339709512, same code, runner pinned to ubuntu-24.04): test job 1m4s, image job 18s. One run each; the faster image job probably reflects the Docker build cache, but I did not isolate that.
+- No secrets in CI beyond the built-in GITHUB_TOKEN; the repository holds none. Permissions are read-only by default and only the image job has packages:write.
+- Before enabling CI, a clean-environment local build (dev Postgres and Redis stopped, app environment variables unset) passed: 56 tests, 29.1 s. That check found and fixed one test (the context-loads test) that depended on the local dev database.
+- Runner image pinned to ubuntu-24.04 after GitHub announced that ubuntu-latest migrates to Ubuntu 26.
+- Caveats: I verified the coverage gate fails locally (M9) but have not deliberately broken a CI run to watch the pipeline stop; timings are single runs.

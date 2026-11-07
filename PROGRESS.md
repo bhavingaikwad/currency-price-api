@@ -13,7 +13,7 @@
 | M8 Auth, rate limit, validation | Done (2026-11-06) | JWT + roles, Bucket4j limits, RFC 9457 errors, 15 integration tests |
 | M9 Testing | Done (2026-11-06) | 56 tests (1 live-API test skipped by design), JaCoCo 97.3% line / 87.5% branch, coverage gate enforced in the build |
 | M10 Containerize | Done (2026-11-06) | multi-stage non-root Dockerfile with layered jar, full compose stack (app + Postgres + Redis) with health checks |
-| M11 CI/CD | Not started | |
+| M11 CI/CD | Done (2026-11-06) | GitHub Actions: tests + coverage gate on every push/PR, image published to GHCR from main |
 | M12 AWS deploy | Not started | |
 | M13 Observability | Not started | |
 | M14 Load test | Not started | |
